@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Configuración y Secretos
+.env
+
+# Datos locales del bot (Sesiones e historial)
+profile/
+*.json
+*.log
+geckodriver.log
+
+# IDEs y Sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
