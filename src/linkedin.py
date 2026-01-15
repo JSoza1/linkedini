@@ -57,17 +57,16 @@ class LinkedInBot(BaseBot):
                 
                 while page_num <= max_pages:
                     # =========================================================================
-                    # WORKAROUND: ANTI-SCROLL LOCK
+                    # TÉCNICA: DESBLOQUEO DE SCROLL (Ida y Vuelta)
                     # =========================================================================
-                    # Problema: En la primera página, a veces LinkedIn detiene la carga dinámica (lazy loading).
-                    # Solución: Forzar una interacción de navegación (Page 1 -> Page 2 -> Page 1).
-                    # Esto restablece los eventos de scroll del navegador.
+                    # Problema: En la primera página, a veces LinkedIn detiene la carga dinámica.
+                    # Solución: Ir a Pág 2 -> Volver a Pág 1 -> Resetear posición.
                     # =========================================================================
                     if page_num == 1 and not fix_applied:
                         try:
                             # Detectar entorno
                             is_android = "ANDROID_ROOT" in os.environ
-                            maniobra_msg = "🔄 Aplicando Workaround de Navegación..."
+                            maniobra_msg = "🔄 Aplicando Técnica de Desbloqueo..."
                             print(f"      {maniobra_msg}")
                             
                             # 1. Bajar al fondo
@@ -108,6 +107,12 @@ class LinkedInBot(BaseBot):
                             wait_time = 8 if is_android else 4
                             time.sleep(wait_time)
                             
+                            # Asegurar que estamos arriba del todo al volver
+                            body = self.driver.find_element(By.TAG_NAME, 'body')
+                            for _ in range(3):
+                                body.send_keys(Keys.PAGE_UP)
+                                time.sleep(0.5)
+
                             fix_applied = True
                         except Exception as e:
                             print(f"      ⚠️ No se pudo realizar la maniobra 1->2->1: {e}")
@@ -133,13 +138,13 @@ class LinkedInBot(BaseBot):
 
                         body = self.driver.find_element(By.TAG_NAME, 'body')
                         
-                        # 8 pulsaciones de PAGE_DOWN para asegurar carga profunda
+                        # 20 pulsaciones de PAGE_DOWN para asegurar carga profunda (Fuerza bruta)
                         # Ajustamos velocidad para Android
                         is_android = "ANDROID_ROOT" in os.environ
-                        scroll_wait = 1.6 if is_android else 0.8
-                        final_wait = 5 if is_android else 2
+                        scroll_wait = 2.0 if is_android else 1.5
+                        final_wait = 5 if is_android else 3
                         
-                        for k in range(8): 
+                        for k in range(20): 
                             body.send_keys(Keys.PAGE_DOWN)
                             time.sleep(scroll_wait) # Espera para carga de contenido (lazy loading)
                             
