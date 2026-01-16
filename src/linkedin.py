@@ -4,7 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import time
-from src.config import JOB_SEARCH_URLS, SEARCH_KEYWORDS, NEGATIVE_KEYWORDS
+from src.config import JOB_SEARCH_URLS
+from src.keywords_manager import get_positive_keywords, get_negative_keywords
 from src.listener import check_telegram_replies
 
 class LinkedInBot(BaseBot):
@@ -185,7 +186,9 @@ class LinkedInBot(BaseBot):
                             # Pero BaseBot.validate_job_title NO maneja "solicitud sencilla" removal etc, 
                             # aunque ya lo hicimos arriba.
                             
-                            match_keyword = self.validate_job_title(title_text, SEARCH_KEYWORDS, NEGATIVE_KEYWORDS)
+                            current_positive = get_positive_keywords()
+                            current_negative = get_negative_keywords()
+                            match_keyword = self.validate_job_title(title_text, current_positive, current_negative)
                             
                             if match_keyword:
                                 found_on_page += 1

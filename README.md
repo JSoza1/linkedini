@@ -93,6 +93,21 @@ Este proyecto está construido con un stack robusto y simple:
 - **Requests**: Para la comunicación HTTP.
 - **Python-Dotenv**: Para gestión segura de variables de entorno.
 
+## 🎮 Comandos de Telegram
+
+Puedes controlar los filtros y búsquedas del bot directamente desde el chat de Telegram, sin necesidad de reiniciar el programa.
+
+| Acción | Comando Principal | Alias (Más cortos) | Ejemplo |
+|:---|:---|:---|:---|
+| **Agregar Negativa** 🚫 | `/addneg <palabra>` | `/menos`, `/an` | `/menos wordpress` |
+| **Eliminar Negativa** 🗑️ | `/delneg <palabra>` | `/sacarmenos`, `/dn` | `/dn php` |
+| **Agregar Positiva** ✅ | `/addpos <palabra>` | `/mas`, `/ap` | `/mas rust` |
+| **Eliminar Positiva** 🗑️ | `/delpos <palabra>` | `/sacarmas`, `/dp` | `/dp react` |
+| **Ver Negativas** 📜 | `/listneg` | `/vermenos`, `/ln` | `/ln` |
+| **Ver Positivas** 📜 | `/listpos` | `/vermas`, `/lp` | `/lp` |
+| **Ayuda / Comandos** ℹ️ | `/comandos` | `/help`, `/ayuda` | `/ayuda` |
+| **Archivar Oferta** 🗃️ | `ya lo vi` | `listo`, `paso`, `visto` | *(Responder al mensaje del bot)* |
+
 ## 📂 Estructura del Proyecto
 
 ```
@@ -101,12 +116,14 @@ linkedini/
 ├── run_bot.bat        # Script de inicio rápido para Windows.
 ├── requirements.txt   # Lista de dependencias.
 ├── .env               # (Crear manualmente) Tus claves y configuraciones privadas.
+├── keywords.json      # (Auto-generado) Base de datos de palabras clave (se crea al iniciar).
 ├── profile/           # (Auto-generado) Carpeta donde se guardan tus cookies de LinkedIn.
 ├── src/
 │   ├── driver.py      # Configuración del navegador Chrome (Sessiones, Anti-bot).
 │   ├── linkedin.py    # Lógica de scraping y navegación en LinkedIn.
-│   ├── listener.py    # Escucha comandos de Telegram ("ya lo vi", etc).
+│   ├── listener.py    # Escucha comandos de Telegram ("ya lo vi", "/menos", etc).
 │   ├── history.py     # Gestiona la base de datos de trabajos vistos.
+│   ├── keywords_manager.py # Gestiona la persistencia de palabras clave (JSON).
 │   ├── notifications.py # Envío de mensajes a Telegram.
 │   └── config.py      # Constantes, URLs de búsqueda y Keywords.
 └── ...
@@ -114,7 +131,7 @@ linkedini/
 
 ## 🧠 Archivos de Datos (Memoria)
 
-El bot utiliza dos archivos JSON locales para mantener su "estado":
+El bot utiliza archivos JSON locales para mantener su "estado":
 
 1.  **`seen_jobs.json`**:
     -   **Función**: Evita duplicados.
@@ -124,3 +141,7 @@ El bot utiliza dos archivos JSON locales para mantener su "estado":
 2.  **`last_update.json`**:
     -   **Función**: Control de mensajería.
     -   Guarda el ID del último mensaje de Telegram procesado para no releer comandos antiguos.
+
+3.  **`keywords.json`**:
+    -   **Función**: Configuración dinámica.
+    -   Guarda tus listas de palabras positivas y negativas para que no se pierdan al reiniciar el bot.
