@@ -39,6 +39,9 @@ class LinkedInBot(BaseBot):
         # Notificación al iniciar el módulo LinkedIn
 
 
+        total_cards_seen = 0
+        consecutive_low_yield_pages = 0
+
         for url_index, base_url in enumerate(JOB_SEARCH_URLS):
             print(f"\n   🌍 [LinkedIn] Iniciando Búsqueda #{url_index + 1}")
             print(f"   🔗 URL: {base_url}")
@@ -158,7 +161,29 @@ class LinkedInBot(BaseBot):
                     # --- EXTRAYENDO TARJETAS ---
                     job_cards = self.driver.find_elements(By.CSS_SELECTOR, "div.job-card-container")
                     
-                    print(f"   🔎 Analizando {len(job_cards)} tarjetas en esta página...")
+                    card_count = len(job_cards)
+                    print(f"   🔎 Analizando {card_count} tarjetas en esta página...")
+                    total_cards_seen += card_count
+
+                    # --- CHECK DE BAJO RENDIMIENTO (POSIBLE SESIÓN CAÍDA) ---
+                    # Si encontramos muy pocas ofertas (<10), es probable que LinkedIn no esté cargando bien
+                    # o que nos haya pedido iniciar sesión (captcha/login).
+                    if card_count < 10:
+                        consecutive_low_yield_pages += 1
+                        print(f"      ⚠️ Ofertas bajas ({card_count}). Racha: {consecutive_low_yield_pages}/3")
+                    else:
+                        # Si encontramos una página normal, reseteamos la racha.
+                        # Esto confirma que la sesión está saludable.
+                        consecutive_low_yield_pages = 0
+
+                    # Si acumulamos 3 páginas seguidas "malas", activamos la alarma y DETENEMOS.
+                    if consecutive_low_yield_pages >= 3:
+                        print("      🚨 DETECTADO POSIBLE BLOQUEO O SESIÓN CERRADA. ABORTANDO.")
+                        self.notify("⚠️ <b>ALERTA CRÍTICA:</b> 3 páginas seguidas con <10 ofertas. Deteniendo búsqueda actual.")
+                        
+                        # Salimos de la función search() completamente.
+                        # No tiene sentido seguir con otras URLs si la sesión está caída.
+                        return
                     
                     found_on_page = 0
                     
@@ -225,3 +250,13 @@ class LinkedInBot(BaseBot):
             except Exception as e:
                 print(f"   ❌ Error en búsqueda #{url_index + 1}: {e}")
                 continue # Pasar a la siguiente URL si falla una
+
+        # --- DIAGNÓSTICO DE SESIÓN ---
+        print(f"\n📊 Total de ofertas analizadas en esta corrida: {total_cards_seen}")
+        if total_cards_seen < 10:
+            msg = (
+                f"⚠️ <b>POSIBLE SESIÓN CERRADA</b>\n"
+                f"Solo encontré <b>{total_cards_seen} ofertas</b> en total.\n"
+                f"Por favor entra al servidor y verifica si LinkedIn pide login o captcha."
+            )
+            self.notify(msg)
